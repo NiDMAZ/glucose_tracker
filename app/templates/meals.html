@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<script>
+    $(document).ready(function() {
+      $("#add_meal").click(function() {
+        $('.ui.modal').modal('show');
+      });
+    
+      $("#save_meal").click(function() {
+    
+        var meal_name = $("#meal_name").val();
+          
+        $.ajax({
+            url: '/api/meal',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ "name": meal_name}),
+            dataType: 'json'
+          });
+    
+        $('.ui.modal').modal('hide');
+        window.location.reload(false);
+      });
+    });
+    </script>
+
+<div class="actions">
+    <div id="add_meal" class="ui positive right labeled icon button">
+        Add Meal
+        <i class="plus icon"></i>
+    </div>
+</div>
+
+<table class="ui celled table">
+    <thead>
+      <tr>
+        <th>id</th>
+        <th>Name</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for i in meals %}
+      <tr>
+        <td>{{ i.id }}</td>
+        <td>{{ i.name }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="ui modal">
+    <i class="close icon"></i>
+    <div class="header">
+      Add Glucose Entry
+    </div>
+    <div class="content">
+        <div class="ui form">
+
+            <label>Meal Name</label>
+            <div class="ui input">
+                <input id="meal_name" name="meal_name" type="text" placeholder="Enter Meal...">
+              </div>
+
+        </div>
+    </div>
+
+    <div class="actions">
+        <button id="save_meal" class="ui green right labeled icon button">
+            <i class="save icon"></i>
+            Save
+          </button>
+    </div>
+
+  </div>
+
+
+{% endblock %}

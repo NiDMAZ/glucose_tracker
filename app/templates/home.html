@@ -1,0 +1,156 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<script>
+    $(document).ready(function() {
+      $('table').tablesort();
+
+      $("#add_entry").click(function() {
+        $('.ui.modal').modal('show');
+      });
+    
+      $("#save_glucose").click(function() {
+    
+        var username = $("#username").val();
+        var glucose_value = $("#glucose_value").val();
+        var note = $("#note").val();
+        var meal = $("#meal").val();
+        var date = new Date();
+          
+        $.ajax({
+            url: '/api/glucose',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ "user": username, 
+                "value": glucose_value, 
+                "unit": "mg/dL", 
+                "time": date.toISOString(),
+                "note": note,
+                "meal": meal}),
+            dataType: 'json'
+          });
+    
+        $('.ui.modal').modal('hide');
+        window.location.reload(false);
+      });
+    });
+    </script>
+
+<div class="ui two column stackable grid container">
+  <div class="column">
+    <div class="actions">
+      <div id="add_entry" class="ui positive right labeled icon button">
+          Add Entry
+          <i class="plus icon"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <div class="ui two column stackable grid container">
+    <div class="column">
+      <form method="get">
+
+        <div class="ui input">
+          <input name="value" type="text" placeholder="Value" value="{{ value }}">
+        </div>
+        
+        <!-- <div class="ui input">
+          <input name="meal" type="text" placeholder="Meal" value="{{ meal or '' }}">
+        </div> -->
+      
+        <select name="meal" id="meal" class="ui dropdown">
+          <option value="">Meal</option>
+            {%  for i in meals %}
+          <option value="{{ i.name }}">{{ i.name }}</option>
+      
+          {% endfor %}
+        </select>
+        
+        <button type="submit" class="ui button primary">Filter</button>
+        
+        </form>
+    </div>
+    <div class="column">
+      <form method="get">
+        <button id="clear_button" type="submit" class="ui secondary basic button">Clear Filters</button>
+      </form>
+    </div>
+  </div>
+
+
+
+<table class="ui sortable celled striped blue table">
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Value</th>
+        <th>Meal</th>
+        <th>Notes</th>
+        <th>Name</th>
+        <th>Unit</th>
+        <th>id</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for i in glucose_entries %}
+      <tr>
+        <td>{{ i.time }}</td>
+        <td>{{ i.value }}</td>
+        <td>{{ i.meal }}</td>
+        <td>{{ i.note }}</td>
+        <td>{{ i.user }}</td>
+        <td>{{ i.unit }}</td>
+        <td>{{ i.id }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="ui modal">
+    <i class="close icon"></i>
+    <div class="header">
+      Add Glucose Entry
+    </div>
+    <div class="content">
+        <div class="ui form">
+
+              <select id="username" class="ui dropdown">
+                <option value="{% if users %} {{ users[0].first_name}} {{ users[0].last_name}} {% else %} {% endif %}" >{% if users %}{{ users[0].first_name |title }} {{ users[0].last_name|title }} {% else %}  {% endif %}</option>
+                  {%  for i in users[1:] %}
+                <option value="{{ i.first_name}} {{ i.last_name }}">{{ i.first_name |title }} {{ i.last_name|title }}</option>
+                {% endfor %}
+              </select>
+
+              <select id="meal" class="ui dropdown">
+                <option value="">Meal</option>
+                  {%  for i in meals %}
+                <option value="{{ i.name }}">{{ i.name }}</option>
+
+                {% endfor %}
+              </select>
+              
+            <div class="ui input">
+                <input id="glucose_value" name="value" type="text" placeholder="Value" value="">
+              </div>
+            </br>
+
+            <div class="ui input">
+                <input id="note" name="note" type="text" placeholder="Enter Notes here.." value="">
+              </div>
+
+        </div>
+    </div>
+
+    <div class="actions">
+        <button id="save_glucose" class="ui green right labeled icon button">
+            <i class="save icon"></i>
+            Save
+          </button>
+    </div>
+
+  </div>
+
+
+{% endblock %}
