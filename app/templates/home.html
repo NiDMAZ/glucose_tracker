@@ -15,7 +15,7 @@
         var username = $("#username").val();
         var glucose_value = $("#glucose_value").val();
         var note = $("#note").val();
-        var meal = $("#meal").val();
+        var meal = $("#meal_name").val();
         var date = new Date();
           
         $.ajax({
@@ -123,7 +123,7 @@
                 {% endfor %}
               </select>
 
-              <select id="meal" class="ui dropdown">
+              <select id="meal_name" class="ui dropdown">
                 <option value="">Meal</option>
                   {%  for i in meals %}
                 <option value="{{ i.name }}">{{ i.name }}</option>
