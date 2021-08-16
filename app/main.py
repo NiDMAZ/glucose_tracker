@@ -85,6 +85,7 @@ async def home(request: Request, value: str = 0, meal: str = None, db: Session =
         "value": value
     })
 
+
 @app.get("/meal")
 def meal(request: Request, db: Session = Depends(get_db)):
     meals = db.query(Meal).order_by(Meal.name)
@@ -93,6 +94,7 @@ def meal(request: Request, db: Session = Depends(get_db)):
         "request": request, 
         "meals": meals.all()
     })
+
 
 @app.get("/api/glucose/{id}")
 async def get_single_glucose(id: str, db: Session = Depends(get_db)):
