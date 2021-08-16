@@ -72,7 +72,7 @@ async def home(request: Request, value: str = 0, meal: str = None, db: Session =
         time = i.time
         time = time.replace(tzinfo=pytz.utc)
         time = time.astimezone(pytz.timezone('America/New_York'))
-        i.time = time.strftime("%a %b %d %Y, %I:%M %p")
+        i.time = time.strftime("%Y-%m-%d")
         format_entries.append(i)
         
 
