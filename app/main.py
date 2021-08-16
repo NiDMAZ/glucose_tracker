@@ -141,8 +141,36 @@ async def get_single_meal(id: str, db: Session = Depends(get_db)):
 
     return entry
 
+@app.delete("/api/meal/{id}")
+async def remove_meal(id: str, db: Session = Depends(get_db)):
+    entry = db.query(Meal).filter(Meal.id == id).first()
+    meal_name = entry.name
+    db.delete(entry)
+    db.commit()
+
+    return {
+        "code": "success",
+        "message": f"Deleted ID= {id} Name={meal_name}"
+    }
+
+
 @app.post("/api/meal")
 async def add_meal(meal: MealEntry, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+
+    meal_ = Meal()
+    meal_.name = meal.name
+
+    db.add(meal_)
+    db.commit()
+	
+    return {
+	"code": "success",
+	"message": "Entry was added successfully"
+   }
+
+@app.put("/api/meal{id}")
+async def add_meal(meal: MealEntry, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    entry = db.query(Meal).filter(Meal.id == id).first()
 
     meal_ = Meal()
     meal_.name = meal.name
