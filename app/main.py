@@ -102,6 +102,21 @@ async def get_single_glucose(id: str, db: Session = Depends(get_db)):
 
     return entry
 
+@app.delete("/api/glucose/{id}")
+async def get_single_glucose(id: str, db: Session = Depends(get_db)):
+    entry = db.query(GlucoseLevel).filter(GlucoseLevel.id == id).first()
+    entry_time = entry.time
+    entry_value = entry.value
+    meal_name = entry.meal
+    db.delete(entry)
+    db.commit()
+
+    return {
+        "code": "success",
+        "message": f"Deleted ID= {id} MealName={meal_name} Value={entry_value} EntryTime={entry_time}"
+    }
+
+
 @app.get("/api/glucose")
 async def get_all_glucose_entry(request: Request, db: Session = Depends(get_db)):
     entries = db.query(GlucoseLevel)
