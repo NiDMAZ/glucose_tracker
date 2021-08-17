@@ -9,22 +9,22 @@
 
       $("#save_glucose").click(function() {
     
-        var username = $("#username").val();
+        var user_id = $("#user_id").val();
         var glucose_value = $("#glucose_value").val();
         var note = $("#note").val();
-        var meal = $("#meal_name").val();
+        var meal_id = $("#meal_id").val();
         var date = new Date();
           
         $.ajax({
             url: '/api/glucose',
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ "user": username, 
-                "value": glucose_value, 
+            data: JSON.stringify({ "user_id": user_id, 
+                "amount": glucose_value, 
                 "unit": "mg/dL", 
-                "time": date.toISOString(),
+                "date": date.toISOString(),
                 "note": note,
-                "meal": meal}),
+                "meal_id": meal_id}),
             dataType: 'json'
           });
     
@@ -53,14 +53,14 @@
           <form method="get">
             <div class="row">
                 <div class="col">
-                    <input type="integer" class="form-control" name="value" placeholder="Value" value="{{ value }}">
+                    <input type="integer" class="form-control" name="amount" placeholder="Amount" value="{{ amount }}">
                 </div>
         
                 <div id="mealCol" class="col">
-                      <select id="meal" name="meal" class="form-select" aria-label="Meal Name">
+                      <select id="meal" name="meal_id" class="form-select" aria-label="Meal Name">
                         <option selected value="">Meal</option>
                             {%  for i in meals %}
-                            <option value="{{ i.name }}">{{ i.name }}</option>
+                            <option value="{{ i.id }}">{{ i.name }}</option>
                         {% endfor %}
                         </select>
                 </div> <!-- END mealCol-->
@@ -95,7 +95,7 @@
             <thead class="table-dark">
               <tr>
                 <th>Date</th>
-                <th>Value</th>
+                <th>Amount</th>
                 <th>Meal</th>
                 <th>Notes</th>
                 <th>Name</th>
@@ -106,11 +106,11 @@
             <tbody>
                 {% for i in glucose_entries %}
                 <tr>
-                  <td>{{ i.time }}</td>
-                  <td>{{ i.value }}</td>
-                  <td>{{ i.meal }}</td>
+                  <td>{{ i.date }}</td>
+                  <td>{{ i.amount }}</td>
+                  <td>{{ i.meal.name }}</td>
                   <td>{{ i.note }}</td>
-                  <td>{{ i.user }}</td>
+                  <td>{{ i.user.first_name |title }}</td>
                   <td>{{ i.unit }}</td>
                   <td>{{ i.id }}</td>
                 </tr>
@@ -132,20 +132,20 @@
         <div class="modal-body">
 
             <div class="mb-2">
-                <select id="username" class="form-select" aria-label="Use Name">
-                    <option selected value="{% if users %} {{ users[0].first_name}} {{ users[0].last_name}} {% else %} {% endif %}" >{% if users %}{{ users[0].first_name |title }} {{ users[0].last_name|title }} {% else %}  {% endif %}</option>
+                <select id="user_id" class="form-select" aria-label="Use Name">
+                    <option selected value="{% if users %} {{ users[0].id}}  {% else %} {% endif %}" >{% if users %}{{ users[0].first_name |title }} {{ users[0].last_name|title }} {% else %}  {% endif %}</option>
                     {%  for i in users[1:] %}
-                        <option value="{{ i.first_name}} {{ i.last_name }}">{{ i.first_name |title }} {{ i.last_name|title }}</option>
+                        <option value="{{ i.id }}">{{ i.first_name |title }} {{ i.last_name|title }}</option>
                     {% endfor %}
                 </select>
               </div>
 
 
             <div class="mb-2">
-                <select id="meal_name" class="form-select" aria-label="Use Name">
+                <select id="meal_id" class="form-select" aria-label="Use Name">
                 <option selected value="">Meal</option>
                     {%  for i in meals %}
-                    <option value="{{ i.name }}">{{ i.name }}</option>
+                    <option value="{{ i.id }}">{{ i.name }}</option>
                 {% endfor %}
                 </select>
             </div>

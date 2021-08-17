@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 from database import SessionLocal, engine
 from models import GlucoseLevel, Meal, User
+from schema import GlucoseEntry, SingleGlucoseEntry, MealEntry, UserModel
 
 from sqlalchemy.orm import Session
 
@@ -22,28 +23,6 @@ models.Base.metadata.create_all(bind=engine)
 templates = Jinja2Templates(directory="templates")
 
 
-class GlucoseEntry(BaseModel):
-    user: str
-    time: datetime.datetime
-    value: int
-    unit: str = 'mg/dL'
-    note: str = ''
-    meal: str = ''
-
-
-class SingleGlucoseEntry(BaseModel):
-    id: int
-
-
-class MealEntry(BaseModel):
-    name: str = ''
-
-class UserModel(BaseModel):
-    first_name: str
-    last_name: str
-    email: str = ''
-
-
 def get_db():
     try:
         db = SessionLocal()
@@ -53,26 +32,25 @@ def get_db():
 
 
 @app.get("/")
-async def home(request: Request, value: str = 0, meal: str = None, db: Session = Depends(get_db)):
-    entries = db.query(GlucoseLevel).order_by(GlucoseLevel.time.desc())
+async def home(request: Request, amount: str = 0, meal_id: str = None, db: Session = Depends(get_db)):
+    entries = db.query(GlucoseLevel).order_by(GlucoseLevel.date.desc())
     meals = db.query(Meal)
     users = db.query(User)
 
-    if value:
-        entries = entries.filter(GlucoseLevel.value >= value)
+    if amount:
+        entries = entries.filter(GlucoseLevel.amount >= amount)
 
-    if meal:
-        entries = entries.filter(GlucoseLevel.meal == meal)
+    if meal_id:
+        entries = entries.filter(GlucoseLevel.meal_id == meal_id)
 
     format_entries = []
 
     for i in entries.all():
-        i.user = i.user.title()
 
-        time = i.time
-        time = time.replace(tzinfo=pytz.utc)
-        time = time.astimezone(pytz.timezone('America/New_York'))
-        i.time = time.strftime("%Y-%m-%d")
+        date = i.date.replace(tzinfo=pytz.utc).astimezone(pytz.timezone('America/New_York')).strftime("%Y-%m-%d")
+        # date = date.replace(tzinfo=pytz.utc)
+        # date = date.astimezone(pytz.timezone('America/New_York'))
+        i.date = date
         format_entries.append(i)
         
 
@@ -81,8 +59,8 @@ async def home(request: Request, value: str = 0, meal: str = None, db: Session =
         "glucose_entries": format_entries,
         "meals": meals.all(),
         "users": users.all(),
-        "meal": meal,
-        "value": value
+        "meal_id": meal_id,
+        "amount": amount
     })
 
 
@@ -103,17 +81,17 @@ async def get_single_glucose(id: str, db: Session = Depends(get_db)):
     return entry
 
 @app.delete("/api/glucose/{id}")
-async def get_single_glucose(id: str, db: Session = Depends(get_db)):
+async def delete_glucose_entry(id: str, db: Session = Depends(get_db)):
     entry = db.query(GlucoseLevel).filter(GlucoseLevel.id == id).first()
-    entry_time = entry.time
-    entry_value = entry.value
-    meal_name = entry.meal
+    entry_time = entry.date
+    entry_amount = entry.amount
+    meal_name = entry.meal_id
     db.delete(entry)
     db.commit()
 
     return {
         "code": "success",
-        "message": f"Deleted ID= {id} MealName={meal_name} Value={entry_value} EntryTime={entry_time}"
+        "message": f"Deleted ID= {id} MealName={meal_name} Amount={entry_amount} EntryTime={entry_time}"
     }
 
 
@@ -128,19 +106,20 @@ async def get_all_glucose_entry(request: Request, db: Session = Depends(get_db))
 async def add_glucose_entry(glucose_entry: GlucoseEntry, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
 
     glucose = GlucoseLevel()
-    glucose.user = glucose_entry.user.lower()
-    glucose.time = glucose_entry.time
-    glucose.value = glucose_entry.value
+    glucose.user_id = glucose_entry.user_id
+    glucose.date = glucose_entry.date
+    glucose.amount = glucose_entry.amount
     glucose.unit = glucose_entry.unit
     glucose.note = glucose_entry.note
-    glucose.meal = glucose_entry.meal
+    glucose.meal_id = glucose_entry.meal_id
 
     db.add(glucose)
     db.commit()
 	
     return {
 	"code": "success",
-	"message": "Entry was added successfully"
+	"message": "Entry was added successfully",
+    "id": glucose.id
 
    }
 
@@ -180,7 +159,8 @@ async def add_meal(meal: MealEntry, background_tasks: BackgroundTasks, db: Sessi
 	
     return {
 	"code": "success",
-	"message": "Entry was added successfully"
+	"message": "Entry was added successfully",
+    "id": meal_.id
    }
 
 @app.put("/api/meal{id}")
@@ -225,6 +205,18 @@ async def add_user(user: UserModel, background_tasks: BackgroundTasks, db: Sessi
 	
     return {
 	"code": "success",
-	"message": "Entry was added successfully"
+	"message": "Entry was added successfully",
+    "id": user_.id
 
    }
+
+@app.delete("/api/user/{id}")
+async def remove_user(id: str, db: Session = Depends(get_db)):
+    entry = db.query(User).filter(User.id == id).first()
+    db.delete(entry)
+    db.commit()
+
+    return {
+        "code": "success",
+        "message": f"Deleted ID= {id}"
+    }
