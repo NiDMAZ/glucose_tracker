@@ -10,7 +10,6 @@ class GlucoseEntry(BaseModel):
     amount: int
     unit: str = 'mg/dL'
     note: str = ''
-    meal: str = ''
 
 
 class SingleGlucoseEntry(BaseModel):
